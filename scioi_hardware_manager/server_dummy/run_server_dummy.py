@@ -16,7 +16,7 @@ def callback_stream(message, device: TWIPR_Dummy):
     #print(f"STREAM from {device.information.device_id}")
     # Convert message to JSON and send to the websocket
     id = message.data["general"]["id"]
-
+    
     message = message.data
     ws.send(message)
 
