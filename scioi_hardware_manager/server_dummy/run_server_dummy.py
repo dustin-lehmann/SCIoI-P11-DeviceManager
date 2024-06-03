@@ -79,12 +79,16 @@ def run_robot_loop(server):
         print("--------------------")
         time.sleep(time_to_change_robots)
 
+def ws_callback(message):
+    print(f"Received message: {message}")
+
 def main():
     global ws
     server = HardwareManagerDummy()
     server.registerCallback('new_device', device_connected_callback)
     server.registerCallback('device_disconnected', device_disconnected_callback)
     ws = WebsocketClass('localhost', 8765, start=True)
+    ws.set_message_callback(ws_callback)
     run_robot_loop(server)
 
 
