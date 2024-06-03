@@ -9,28 +9,30 @@ from server_dummy.server import HardwareManagerDummy
 from server_dummy.twipr_dummy import TWIPR_Dummy
 import threading
 import random
+ws_stream = None
+ws_messages = None
 
-ws = None
 def callback_stream(message, device: TWIPR_Dummy):
-    global ws
+    global ws_stream
     #print(f"STREAM from {device.information.device_id}")
     # Convert message to JSON and send to the websocket
     id = message.data["general"]["id"]
     
     message = message.data
-    ws.send(message)
+    ws_stream.send(message)
 
 def device_connected_callback(device: TWIPR_Dummy):
-    global ws
+    global ws_messages
     print(f"Device Connected: {device.information.device_id}")
-    msg = {'event': 'connected', 'device_id': device.information.device_id}
+    message = {"event": "robot_connected", "device_id": device.information.device_id}
+    ws_messages.send(message)
     #ws.send(msg)
 
 def device_disconnected_callback(device: TWIPR_Dummy):
-    global ws
+    global ws_messages
     print(f"Device disconnected: {device.information.device_id}")
-    msg = {'event': 'disconnected', 'device_id': device.information.device_id}
-    #ws.send(msg)
+    message = {"event": "robot_disconnected", "device_id": device.information.device_id}
+    ws_messages.send(message)
     
 """
 async def websocket_server():
@@ -83,12 +85,14 @@ def ws_callback(message):
     print(f"Received message: {message}")
 
 def main():
-    global ws
+    global ws_stream
+    global ws_messages
     server = HardwareManagerDummy()
     server.registerCallback('new_device', device_connected_callback)
     server.registerCallback('device_disconnected', device_disconnected_callback)
-    ws = WebsocketClass('localhost', 8765, start=True)
-    ws.set_message_callback(ws_callback)
+    ws_stream = WebsocketClass('localhost', 8765, start=True)
+    ws_messages = WebsocketClass('localhost', 8766, start=True)
+    ws_messages.set_message_callback(ws_callback)
     run_robot_loop(server)
 
 

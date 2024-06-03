@@ -2,8 +2,8 @@ import time
 
 from hardware_manager.manager import HardwareManager
 from hardware_manager.helper.websocket_server import WebsocketClass
-global ws_stream
-global ws_messages
+ws_stream = None
+ws_messages = None
 
 
 def stream_callback(stream, device, *args, **kwargs):
