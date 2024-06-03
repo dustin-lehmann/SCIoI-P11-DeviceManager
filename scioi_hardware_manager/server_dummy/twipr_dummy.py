@@ -40,7 +40,7 @@ class TWIPR_Dummy(TWIPR):
     def _generateStreamMessage(self,i=0,positional_offset=[0,0],radius=0.5):
         msg = TCP_JSON_Message()
         #data = copy.deepcopy(twipr_wifi_sample)
-        name = self.information.name
+        name = self.information.device_id
         id = self.information.device_id
         data = get_twipr_wifi_sample(i, name,id, 0.005,radius)
         data['estimation']['state']['x'] += positional_offset[0]
