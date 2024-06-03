@@ -114,7 +114,10 @@ class BabylonVisualization:
 
         # Define a new event loop, otherwise it's not working
         asyncio.set_event_loop(asyncio.new_event_loop())
-        self._webapp = qmt.Webapp(self.webapp_path, config=self._config, show='chromium')
+        #self._webapp = qmt.Webapp(self.webapp_path, config=self._config, show='chromium')
+        # can you change self._webapp = qmt.Webapp(self.webapp_path, config=self._config, show='chromium') to not show
+        # the browser window?
+        self._webapp = qmt.Webapp(self.webapp_path, config=self._config, show='none')
         self._webapp.setupOnlineLoop(qmt.ClockDataSource(self.Ts), self.Process(self._data_queue, self.fetch_function))
         self._webapp.run()
         # self._webapp.runInProcess()
