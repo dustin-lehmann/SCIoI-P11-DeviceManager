@@ -17,7 +17,7 @@ def callback_stream(message, device: TWIPR_Dummy):
     # Convert message to JSON and send to the websocket
     id = message.data["general"]["id"]
 
-    message = {id: [message.data]}
+    message = message.data
     ws.send(message)
 
 def device_connected_callback(device: TWIPR_Dummy):
