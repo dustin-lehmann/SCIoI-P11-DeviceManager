@@ -12,6 +12,7 @@ class WebsocketClass:
         self.running = False
         self.loop = asyncio.new_event_loop()
         self.thread = threading.Thread(target=self._start_loop)
+        self.message_callback = None
 
         if start:
             self.run()
@@ -24,7 +25,8 @@ class WebsocketClass:
         self.clients.add(websocket)
         try:
             async for message in websocket:
-                pass  # Here you can add any custom logic to handle incoming messages
+                if self.message_callback:
+                    self.loop.call_soon_threadsafe(self.message_callback, message)
         finally:
             self.clients.remove(websocket)
 
@@ -54,3 +56,6 @@ class WebsocketClass:
             self.loop.stop()
             self.server.close()
             self.running = False
+
+    def set_message_callback(self, callback):
+        self.message_callback = callback
