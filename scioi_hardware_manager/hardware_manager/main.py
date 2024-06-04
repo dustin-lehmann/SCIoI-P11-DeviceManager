@@ -26,7 +26,7 @@ def robot_disconnected(robot, *args, **kwargs):
     message = {"event": "robot_disconnected", "device_id": robot.information.device_id}
     ws_messages.send(message)
 
-def websocket_callback(message):
+def ws_callback(message):
     global stop_streaming
     data = json.loads(message)
     message_type = data.get('type')
@@ -67,7 +67,7 @@ def run_hardware_manager():
     hardware_manager.start()
     ws_stream = WebsocketClass('localhost', 8765, start=True)
     ws_messages = WebsocketClass('localhost', 8766, start=True)
-    ws_messages.set_message_callback(websocket_callback)
+    ws_messages.set_message_callback(ws_callback)
     hardware_manager.registerCallback('stream', stream_callback)
     hardware_manager.registerCallback('robot_connected', new_robot)
 

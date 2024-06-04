@@ -83,7 +83,7 @@ def run_robot_loop(server):
         print("--------------------")
         time.sleep(time_to_change_robots)
 
-def websocket_callback(message):
+def ws_callback(message):
     global stop_streaming
     data = json.loads(message)
     message_type = data.get('type')
