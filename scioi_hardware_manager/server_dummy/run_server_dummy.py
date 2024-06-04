@@ -11,15 +11,17 @@ import threading
 import random
 ws_stream = None
 ws_messages = None
+stop_streaming = False
 
 def callback_stream(message, device: TWIPR_Dummy):
-    global ws_stream
+    global ws_stream, stop_streaming
     #print(f"STREAM from {device.information.device_id}")
     # Convert message to JSON and send to the websocket
-    id = message.data["general"]["id"]
-    
-    message = message.data
-    ws_stream.send(message)
+    if not stop_streaming:
+        id = message.data["general"]["id"]
+        
+        message = message.data
+        ws_stream.send(message)
 
 def device_connected_callback(device: TWIPR_Dummy):
     global ws_messages
@@ -81,8 +83,37 @@ def run_robot_loop(server):
         print("--------------------")
         time.sleep(time_to_change_robots)
 
-def ws_callback(message):
-    print(f"Received message: {message}")
+def websocket_callback(message):
+    global stop_streaming
+    data = json.loads(message)
+    message_type = data.get('type')
+
+    if message_type == 'command' and data.get('command') == 'emergency':
+        stop_streaming = True
+        timestamp = data.get('timestamp')
+        print(f"Emergency command received at {timestamp}")
+
+    elif message_type == 'assignController':
+        bot_id = data.get('botId')
+        controller_id = data.get('controllerId')
+        timestamp = data.get('timestamp')
+        print(f"Assigning controller {controller_id} to bot {bot_id} at {timestamp}")
+
+    elif message_type == 'set':
+        bot_id = data.get('botId')
+        key = data.get('key')
+        value = data.get('value')
+        timestamp = data.get('timestamp')
+        print(f"Setting {key} to {value} for bot {bot_id} at {timestamp}")
+        # Set the control mode for the bot
+        set_control_mode(bot_id, key, value)   
+            
+    else:
+        print(f"Unknown message type: {message_type}") 
+
+def set_control_mode(bot_id, key, value):
+    # Dummy function to set control mode, replace with actual implementation
+    print(f"Control mode for {bot_id} set to {value}")  
 
 def main():
     global ws_stream

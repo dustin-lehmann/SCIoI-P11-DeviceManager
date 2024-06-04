@@ -4,12 +4,13 @@ from hardware_manager.manager import HardwareManager
 from hardware_manager.helper.websocket_server import WebsocketClass
 ws_stream = None
 ws_messages = None
-
+stop_streaming = False
 
 def stream_callback(stream, device, *args, **kwargs):
-    global ws_stream
-    ws_stream.send(stream)
-    print("X")
+    global ws_stream, stop_streaming
+    if not stop_streaming:
+        ws_stream.send(stream.data)
+        print("X")
 
 
 def new_robot(robot, *args, **kwargs):
@@ -26,7 +27,38 @@ def robot_disconnected(robot, *args, **kwargs):
     ws_messages.send(message)
 
 def websocket_callback(message):
-    print(f"Received message: {message}")
+    global stop_streaming
+    data = json.loads(message)
+    message_type = data.get('type')
+
+    if message_type == 'command' and data.get('command') == 'emergency':
+        stop_streaming = True
+        timestamp = data.get('timestamp')
+        print(f"Emergency command received at {timestamp}")
+
+    elif message_type == 'assignController':
+        bot_id = data.get('botId')
+        controller_id = data.get('controllerId')
+        timestamp = data.get('timestamp')
+        print(f"Assigning controller {controller_id} to bot {bot_id} at {timestamp}")
+
+    elif message_type == 'set':
+        bot_id = data.get('botId')
+        key = data.get('key')
+        value = data.get('value')
+        timestamp = data.get('timestamp')
+        print(f"Setting {key} to {value} for bot {bot_id} at {timestamp}")
+        # Set the control mode for the bot
+        set_control_mode(bot_id, key, value)   
+            
+    else:
+        print(f"Unknown message type: {message_type}") 
+
+def set_control_mode(bot_id, key, value):
+    # Dummy function to set control mode, replace with actual implementation
+    print(f"Control mode for {bot_id} set to {value}")  
+   
+
 
 def run_hardware_manager():
     global ws_stream
