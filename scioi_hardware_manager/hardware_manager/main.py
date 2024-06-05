@@ -5,6 +5,7 @@ from hardware_manager.helper.websocket_server import WebsocketClass
 ws_stream = None
 ws_messages = None
 stop_streaming = False
+hardware_manager = None
 
 def stream_callback(stream, device, *args, **kwargs):
     global ws_stream, stop_streaming
@@ -28,6 +29,7 @@ def robot_disconnected(robot, *args, **kwargs):
 
 def ws_callback(message):
     global stop_streaming
+    global hardware_manager
     data = json.loads(message)
     message_type = data.get('type')
 
@@ -40,7 +42,12 @@ def ws_callback(message):
         bot_id = data.get('botId')
         controller_id = data.get('controllerId')
         timestamp = data.get('timestamp')
-        print(f"Assigning controller {controller_id} to bot {bot_id} at {timestamp}")
+        # get the controller and the robot
+        controller = None
+        robot = None
+        # assign the controller to the robot
+        #hardware_manager.assignController(bot_id, controller_id)
+        print(f"Assigning controller {controller_id} to bot {bot_id}")
 
     elif message_type == 'set':
         bot_id = data.get('botId')
@@ -49,7 +56,7 @@ def ws_callback(message):
         timestamp = data.get('timestamp')
         print(f"Setting {key} to {value} for bot {bot_id} at {timestamp}")
         # Set the control mode for the bot
-        set_control_mode(bot_id, key, value)   
+        set_control_mode(bot_id, key, value)
             
     else:
         print(f"Unknown message type: {message_type}") 
@@ -63,6 +70,7 @@ def set_control_mode(bot_id, key, value):
 def run_hardware_manager():
     global ws_stream
     global ws_messages
+    global hardware_manager
     hardware_manager = HardwareManager()
     hardware_manager.start()
     ws_stream = WebsocketClass('localhost', 8765, start=True)
