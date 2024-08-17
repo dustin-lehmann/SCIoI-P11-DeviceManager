@@ -7,37 +7,44 @@ import numpy as np
 
 from applications.robot_manager import RobotManager
 from device_manager.devices.robots.twipr.twipr import TWIPR
-from extensions.joystick.joystick_manager import Joystick
-from extensions.websockets.websocket_server import WebsocketClass
+#from extensions.joystick.joystick_manager import Joystick
+#from extensions.websockets.websocket_server import WebsocketClass
+from extensions.websockets.websocket_interface import WebsocketInterface
+#ws_stream = None
+#ws_messages = None
+#manager = None
 
-ws_stream = None
-ws_messages = None
-manager = None
+#controlModeDict = {"off": 0, "direct": 1, "balancing": 2, "speed": 3}
+#joysticks = []
 
-controlModeDict = {"off": 0, "direct": 1, "balancing": 2, "speed": 3}
-joysticks = []
+STREAM_WS_HOST = 'localhost'
+STREAM_WS_PORT = 8765
+MESSAGE_WS_HOST = 'localhost'
+MESSAGE_WS_PORT = 8766
+LOGGING = True
 
+"""
 
-def stream_callback(stream, device, *args, **kwargs):
+def stream_callback(stream, device, *args, **kwargs): # done
     if ws_stream is not None:
         ws_stream.send(stream)
 
 
-def new_robot(robot, *args, **kwargs):
+def new_robot(robot, *args, **kwargs):  # done
     global ws_messages
     print(f"New Robot connected ({robot.device.information.device_name})")
     message = {"event": "robot_connected", "device_id": robot.device.information.device_id}
     ws_messages.send(message)
 
 
-def robot_disconnected(robot, *args, **kwargs):
+def robot_disconnected(robot, *args, **kwargs): # done
     global ws_messages
     print(f"Robot disconnected ({robot.device.information.device_name})")
     message = {"event": "robot_disconnected", "device_id": robot.device.information.device_id}
     ws_messages.send(message)
 
 
-def ws_callback(message):
+def ws_callback(message): # done
     global manager, controlModeDict
     data = json.loads(message)
     message_type = data.get('type')
@@ -85,12 +92,12 @@ def ws_callback(message):
     else:
         print(f"Unknown message type: {message_type}")
 
-def set_initial_values():
+def set_initial_values():   # done
     global joysticks
     message = { "timestamp" : time.time(), "type" : "joysticksChanged", "data": {"joysticks" : joysticks}  }
     ws_messages.send(message)
 
-def new_joystick(joystick, *args, **kwargs):
+def new_joystick(joystick, *args, **kwargs): # done
     global joysticks, ws_messages
     id = joystick.uuid
     name = joystick.name
@@ -103,7 +110,7 @@ def new_joystick(joystick, *args, **kwargs):
     message = { "timestamp" : time.time(), "type" : "joysticksChanged", "data": {"joysticks" : joysticks}  }
     ws_messages.send(message)
 
-def joystick_disconnected(joystick, *args, **kwargs):
+def joystick_disconnected(joystick, *args, **kwargs): # done
     global joysticks, ws_messages
     id = joystick.uuid
     # check if the joystick is in the dict if yes remove
@@ -115,23 +122,26 @@ def joystick_disconnected(joystick, *args, **kwargs):
             # send the joysticks to the ws
             break
     pass
+"""
 
 def main():
-    global ws_stream, ws_messages, manager
+    #global ws_stream, ws_messages, manager
+    global STREAM_WS_HOST, STREAM_WS_PORT, MESSAGE_WS_HOST, MESSAGE_WS_PORT, LOGGING
 
     manager = RobotManager()
     manager.init()
     manager.start()
+    interface = WebsocketInterface(STREAM_WS_HOST, STREAM_WS_PORT, MESSAGE_WS_HOST, MESSAGE_WS_PORT, manager, LOGGING)
 
-    ws_stream = WebsocketClass('localhost', 8765, start=True)
-    ws_messages = WebsocketClass('localhost', 8766, start=True)
-    ws_messages.set_message_callback(ws_callback)
-    manager.registerCallback('stream', stream_callback)
-    manager.registerCallback('new_robot', new_robot)
-    manager.registerCallback('new_joystick', new_joystick)
-    manager.registerCallback('joystick_disconnected', joystick_disconnected)
+    #ws_stream = WebsocketClass('localhost', 8765, start=True)
+    #ws_messages = WebsocketClass('localhost', 8766, start=True)
+    #ws_messages.set_message_callback(ws_callback)
+    #manager.registerCallback('stream', stream_callback)
+    #manager.registerCallback('new_robot', new_robot)
+    #manager.registerCallback('new_joystick', new_joystick)
+    #manager.registerCallback('joystick_disconnected', joystick_disconnected)
 
-    set_initial_values()
+    #set_initial_values()
 
     while True:
         time.sleep(0.1)
