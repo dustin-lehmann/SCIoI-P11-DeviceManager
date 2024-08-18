@@ -12,7 +12,7 @@ class WebsocketInterface():
     connections, and relays streams and messages to the appropriate components.
     """
 
-    def __init__(self, stream_ws_host: str, stream_ws_port: int, message_ws_host: str, message_ws_port: int, robot_manager: RobotManager, logging: bool = True):
+    def __init__(self, stream_ws_host: str, stream_ws_port: int, message_ws_host: str, message_ws_port: int, robot_manager: RobotManager, logging: bool = True, recording: bool = False, stream_recording_path: str = None, message_recording_path: str = None):
         """
         Initializes the WebsocketInterface with the given WebSocket hosts and ports, and sets up
         the robot manager, joystick manager, and message handling.
@@ -23,9 +23,12 @@ class WebsocketInterface():
         :param message_ws_port: Port for the message WebSocket.
         :param robot_manager: An instance of RobotManager that manages connected robots.
         :param logging: A boolean flag to enable or disable logging (errors are always logged).
+        :param recording: A boolean flag to enable or disable recording of WebSocket messages.
+        :param stream_recording_path: The path to save the recorded stream messages.
+        :param message_recording_path: The path to save the recorded message messages.
         """
-        self.stream_ws = WebsocketClass(stream_ws_host, stream_ws_port)
-        self.message_ws = WebsocketClass(message_ws_host, message_ws_port)
+        self.stream_ws = WebsocketClass(stream_ws_host, stream_ws_port, False, recording, recording_path=stream_recording_path)
+        self.message_ws = WebsocketClass(message_ws_host, message_ws_port, False, recording, recording_path=message_recording_path)
         self.stream_ws.run()
         self.message_ws.run()
         self.message_ws.set_message_callback(self._message_callback)
@@ -49,6 +52,7 @@ class WebsocketInterface():
         self.robot_manager.joysticks.registerCallback('joystick_disconnected', self._joystick_disconnect_callback)
         self.robot_manager.registerCallback('stream', self._robot_stream_callback)
         self.logging = logging
+        self.recording = recording
         self.message_ws.set_connection_callback(self._new_client_connected)
         self._send_initial_values()
 

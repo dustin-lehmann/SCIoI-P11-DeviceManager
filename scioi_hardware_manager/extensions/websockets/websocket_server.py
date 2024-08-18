@@ -29,7 +29,7 @@ class WebsocketClass:
         A callback function to handle new connections.
     """
 
-    def __init__(self, host, port, start=False):
+    def __init__(self, host, port, start=False, recording: bool = False, recording_path: str = None):
         """
         Initializes the WebSocket server with the given host and port.
         
@@ -40,6 +40,10 @@ class WebsocketClass:
             The port number to bind the WebSocket server.
         start : bool, optional
             If True, starts the server immediately (default is False).
+        recording : bool, optional
+            If True, records all messages to a file (default is False).
+        recording_path : str, optional
+            The path to the file where the messages will be recorded (default is None).
         """
         self.host = host
         self.port = port
@@ -50,6 +54,8 @@ class WebsocketClass:
         self.thread = threading.Thread(target=self._start_loop)
         self.message_callback = None
         self.connection_callback = None
+        self.recording = recording
+        self.recording_path = recording_path
 
         if start:
             self.run()
@@ -78,6 +84,15 @@ class WebsocketClass:
             async for message in websocket:
                 if self.message_callback:
                     self.loop.call_soon_threadsafe(self.message_callback, message)
+                    # write the received message to a file
+                    if self.recording:
+                        if isinstance(message, dict):
+                            message_to_file = json.dumps(message)
+                        else:
+                            message_to_file = message
+                        row = f"{time.time()},receive,{message_to_file}\n"
+                        with open(self.recording_path, 'a') as file:
+                            file.write(row)
         finally:
             self.clients.remove(websocket)
 
@@ -118,6 +133,10 @@ class WebsocketClass:
         """
         if isinstance(message, dict):
             message = json.dumps(message)
+        if self.recording:
+            row = f"{time.time()},send,{message}\n"
+            with open(self.recording_path, 'a') as file:
+                file.write(row)
         asyncio.run_coroutine_threadsafe(self._send(message), self.loop)
 
     def stop(self):
