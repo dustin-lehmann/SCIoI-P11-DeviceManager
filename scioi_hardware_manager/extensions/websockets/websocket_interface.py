@@ -12,7 +12,7 @@ class WebsocketInterface():
     connections, and relays streams and messages to the appropriate components.
     """
 
-    def __init__(self, stream_ws_host: str, stream_ws_port: int, message_ws_host: str, message_ws_port: int, robot_manager: RobotManager, logging: bool = True, recording: bool = False, stream_recording_path: str = None, message_recording_path: str = None):
+    def __init__(self, stream_ws_host: str, stream_ws_port: int, message_ws_host: str, message_ws_port: int, robot_manager, logging: bool = True, recording: bool = False, stream_recording_path: str = None, message_recording_path: str = None, dummy: bool = False):
         """
         Initializes the WebsocketInterface with the given WebSocket hosts and ports, and sets up
         the robot manager, joystick manager, and message handling.
@@ -21,7 +21,7 @@ class WebsocketInterface():
         :param stream_ws_port: Port for the stream WebSocket.
         :param message_ws_host: Host for the message WebSocket.
         :param message_ws_port: Port for the message WebSocket.
-        :param robot_manager: An instance of RobotManager that manages connected robots.
+        :param robot_manager: RobotManager that manages connected robots.
         :param logging: A boolean flag to enable or disable logging (errors are always logged).
         :param recording: A boolean flag to enable or disable recording of WebSocket messages.
         :param stream_recording_path: The path to save the recorded stream messages.

@@ -4,7 +4,7 @@ import os
 import json
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from hardware_manager.devices.robots.twipr.twipr import TWIPR
-from hardware_manager.helper.websocket_server import WebsocketClass
+#from hardware_manager.helper.websocket_server import WebsocketClass
 from server_dummy.server import HardwareManagerDummy
 from server_dummy.twipr_dummy import TWIPR_Dummy
 import threading
@@ -13,6 +13,7 @@ ws_stream = None
 ws_messages = None
 stop_streaming = False
 
+"""
 def callback_stream(message, device: TWIPR_Dummy):
     global ws_stream, stop_streaming
     #print(f"STREAM from {device.information.device_id}")
@@ -36,7 +37,7 @@ def device_disconnected_callback(device: TWIPR_Dummy):
     message = {"event": "robot_disconnected", "device_id": device.information.device_id}
     ws_messages.send(message)
     
-"""
+
 async def websocket_server():
     async with websockets.serve(register, "localhost", 8765):
         await asyncio.Future()  # Run forever
@@ -82,7 +83,7 @@ def run_robot_loop(server):
         print_connected_robots(new_robot_connections)
         print("--------------------")
         time.sleep(time_to_change_robots)
-
+"""
 def ws_callback(message):
     global stop_streaming
     data = json.loads(message)
@@ -114,7 +115,7 @@ def ws_callback(message):
 def set_control_mode(bot_id, key, value):
     # Dummy function to set control mode, replace with actual implementation
     print(f"Control mode for {bot_id} set to {value}")  
-
+"""
 def main():
     global ws_stream
     global ws_messages

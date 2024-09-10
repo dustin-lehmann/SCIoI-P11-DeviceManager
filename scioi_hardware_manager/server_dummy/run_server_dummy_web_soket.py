@@ -11,7 +11,9 @@ import random
 import asyncio
 import websockets
 import numpy as np
-
+from server_dummy.dummy_bot_manager import DummyBotManager
+from hardware_manager.applications.extensions.websockets.websocket_interface import WebsocketInterface
+"""
 buffer = {}
 
 
@@ -99,7 +101,11 @@ async def main():
     robot_loop.start()
     servertest = await websockets.serve(send_buffer, 'localhost', 8765)
     await servertest.wait_closed()
+"""
 
+def main():
+    server = HardwareManagerDummy()
+    interface = WebsocketInterface(server)
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
