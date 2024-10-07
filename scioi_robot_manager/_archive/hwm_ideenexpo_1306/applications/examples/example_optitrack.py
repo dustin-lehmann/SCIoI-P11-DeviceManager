@@ -1,8 +1,6 @@
 import time
 
 from applications.robot_manager import RobotManager
-from device_manager.devices.robots.twipr.twipr import TWIPR
-from extensions.joystick.joystick_manager import Joystick
 
 
 def main():

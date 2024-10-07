@@ -26,3 +26,16 @@ class Callback:
 
         return ret
 
+
+def registerCallback(obj, callback_id, function, parameters: dict = None, lambdas: dict = None):
+    """
+    :param callback_id:
+    :param function:
+    :param parameters:
+    :param lambdas:
+    """
+    callback = Callback(function, parameters, lambdas)
+    if callback_id in obj.callbacks:
+        obj.callbacks[callback_id].append(callback)
+    else:
+        raise Exception("Invalid Callback type")

@@ -75,6 +75,10 @@ class TCP_Connection(Connection):
         return self.client.address
 
     # === METHODS ======================================================================================================
+    def close(self):
+        self.client.close()
+
+    # ------------------------------------------------------------------------------------------------------------------
     def send(self, msg, source=None):
 
         # Encode the message

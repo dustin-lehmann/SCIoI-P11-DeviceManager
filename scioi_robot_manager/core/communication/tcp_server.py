@@ -35,7 +35,6 @@ class TCP_Server:
     # === INIT =========================================================================================================
     def __init__(self, address=None):
 
-        # If no specific address is specified, look for a local IP to host the server
         if address is None:
             addresses = getIP()
             if addresses is None:
@@ -71,7 +70,13 @@ class TCP_Server:
             raise Exception(f"No callback with id {callback_id} is known.")
 
     # ------------------------------------------------------------------------------------------------------------------
+    def init(self):
+        ...
+
+    # ------------------------------------------------------------------------------------------------------------------
     def start(self):
+
+        # If no specific address is specified, look for a local IP to host the server
         logger.info(f"Starting server on {self.address}")
         self._startServer()
 
@@ -190,20 +195,8 @@ class TCP_Server:
         if device not in self._unregistered_connections:
             # there might be a problem here. Better raise an Exception for now
             logger.error(f"Device ({device.address}) tried to register, even though it is not in the list "
-                          f"of unregistered devices")
+                         f"of unregistered devices")
             return
-
-        # Check if the device is already in the list of registered devices
-        # if device in self.connections:
-        #     logger.error(f"Connection with ({device.address}) tried to register, even though it is already registered")
-        #     return
-
-        # Check if there is already a device with the same address
-        # for d in self.connections:
-        #     if device.address == d.address:
-        #         logger.error(
-        #             f"Connection ({device.address}) tried to register but there is already a connection with IP address {device.address}")
-        #         return
 
         # Put the device into the list of registered devices
         self.connections.append(device)

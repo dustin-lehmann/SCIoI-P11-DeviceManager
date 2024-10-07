@@ -1,16 +1,19 @@
 import dataclasses
+import time
 
 from core.devices.device import Device
+from robots.twipr.utils.twipr_data import TWIPR_Data, twiprSampleFromDict
+from utils.performance import timer
+from utils.logging import Logger
 
-
-@dataclasses.dataclass
-class TWIPR_Data:
-    ...
+logger = Logger("TWIPR")
+logger.setLevel("DEBUG")
 
 
 class TWIPR:
     device: Device
     callbacks: dict
+    data: TWIPR_Data
 
     def __init__(self, device: Device, *args, **kwargs):
         self.device = device
@@ -19,6 +22,7 @@ class TWIPR:
             'stream': []
         }
 
+        self.data = TWIPR_Data()
         self.device.registerCallback('stream', self._onStreamCallback)
 
     # === CLASS METHODS =====================================================================
@@ -31,11 +35,13 @@ class TWIPR:
         return self.device.information.device_id
 
     # === COMMANDS ===========================================================================
-    def testFunction(self, data):
-        ...
 
     def balance(self, state):
-        ...
+        self.setControlMode(2)
+
+    def resetEncoder(self):
+        self.device.command(command='resetEncoder',
+                            data=[])
 
     def setControlConfiguration(self, config):
         ...
@@ -50,14 +56,17 @@ class TWIPR:
         ...
 
     def stop(self):
-        ...
+        self.setControlMode(0)
 
     def setControlMode(self, mode):
-        print(f"Set control mode to {mode}")
+        logger.debug(f"Robot {self.id}: Set Control Mode to {mode}")
         self.device.command(command='setControlMode', data={'mode': mode})
 
     def setInput(self, input, *args, **kwargs):
         self.device.command('setControlInput', data={'input': input})
+
+    def setTorque(self, torque, *args, **kwargs):
+        self.device.command('setControlInput', data={'input': torque})
 
     def setLEDs(self, color):
         ...
@@ -69,5 +78,4 @@ class TWIPR:
         ...
 
     def _onStreamCallback(self, stream, *args, **kwargs):
-
-        ...
+        self.data = twiprSampleFromDict(stream.data)

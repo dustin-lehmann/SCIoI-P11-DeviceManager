@@ -44,7 +44,7 @@ def main():
         'twipr_agent': {
             'BabylonObject': 'TWIPR_Robot',
             'config': {
-                'base_model': './models/twipr/twipr_',
+                'base_model': './models/TWIPR/twipr_',
                 'show_collision_frame': False,
             },
         },

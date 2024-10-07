@@ -1,9 +1,11 @@
 import dataclasses
 from typing import Union
-import logging
 
 from ..protocol import Protocol, Message
 from core.utils.bytes import bytearray_to_string
+from utils.logging import Logger
+
+logger = Logger('tcp protocol')
 
 
 class TCP_Base_Message(Message):
@@ -62,7 +64,7 @@ class TCP_Base_Protocol(Protocol):
         check = cls.check(data)
 
         if not check:
-            logging.debug(f"Corrupted TCP message received")
+            logger.debug(f"Corrupted TCP message received")
             return None
 
         msg = TCP_Base_Message()

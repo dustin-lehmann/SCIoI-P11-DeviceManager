@@ -4,6 +4,7 @@ import logging
 import os
 
 from utils import colors
+from utils import string as string_utils
 
 
 def disableAllOtherLoggers(module_name=None):
@@ -11,16 +12,19 @@ def disableAllOtherLoggers(module_name=None):
         if log_name != module_name:
             log_obj.disabled = True
 
+
 def disableLoggers(loggers: list):
     for log_name, log_obj in logging.Logger.manager.loggerDict.items():
         if log_name in loggers:
             log_obj.disabled = True
+
 
 def getLoggerByName(logger_name: str):
     for log_name, log_obj in logging.Logger.manager.loggerDict.items():
         if log_name == logger_name:
             return log_obj
     return None
+
 
 def setLoggerLevel(logger, level=logging.DEBUG):
     if isinstance(logger, str):
@@ -32,6 +36,12 @@ def setLoggerLevel(logger, level=logging.DEBUG):
             if l is not None:
                 l.setLevel(logger_tuple[1])
             pass
+    elif isinstance(logger, list) and all(isinstance(l, str) for l in logger):
+        for l in logger:
+            logger_object = getLoggerByName(l)
+            if logger_object is not None:
+                logger_object.setLevel(level)
+
 
 
 def rgb_to_256color_escape(text_color_rgb, bg_color_rgb=None, bold=False):
@@ -59,7 +69,7 @@ def rgb_to_256color_escape(text_color_rgb, bg_color_rgb=None, bold=False):
 
     # Text color
     text_color_index = 16 + (36 * round(text_color_rgb[0] / 255 * 5)) + (
-                6 * round(text_color_rgb[1] / 255 * 5)) + round(text_color_rgb[2] / 255 * 5)
+            6 * round(text_color_rgb[1] / 255 * 5)) + round(text_color_rgb[2] / 255 * 5)
     escape_code += f"38;5;{text_color_index}"
 
     # Background color
@@ -97,16 +107,16 @@ black_text_white_bg = "\x1b[30;47m"
 class CustomFormatter(logging.Formatter):
     _filename: str
 
-    def __init__(self, info_color = grey):
+    def __init__(self, info_color=grey):
         logging.Formatter.__init__(self)
 
         # self.str_format = f"%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
         # self.str_format = "%(asctime)s - %(name)s (%(filename)s) - %(levelname)-10s %(message)s"
-        self.str_format = "%(asctime)s.%(msecs)03d %(levelname)-10s  %(name)s %(filename)-10s  %(message)s"
+        self.str_format = "%(asctime)s.%(msecs)03d %(levelname)-10s  %(name)-20s %(filename)-30s  %(message)s"
         self._filename = None
 
         self.FORMATS = {
-            logging.DEBUG: grey + self.str_format + reset,
+            logging.DEBUG: string_utils.escapeCode(colors.DARK_BROWN) + self.str_format + reset,
             logging.INFO: info_color + self.str_format + reset,
             logging.WARNING: yellow + self.str_format + reset,
             logging.ERROR: red + self.str_format + reset,
@@ -118,7 +128,7 @@ class CustomFormatter(logging.Formatter):
 
     def format(self, record):
         log_fmt = self.FORMATS.get(record.levelno)
-        formatter = logging.Formatter(log_fmt,"%H:%M:%S")
+        formatter = logging.Formatter(log_fmt, "%H:%M:%S")
         record.filename = self._filename
         record.levelname = '[%s]' % record.levelname
         record.filename = '(%s)' % record.filename
@@ -136,9 +146,9 @@ class Logger:
         self._logger.setLevel('INFO')
 
         if isinstance(info_color, tuple):
-            info_color = rgb_to_256color_escape(info_color,background)
+            info_color = rgb_to_256color_escape(info_color, background)
         elif isinstance(info_color, list):
-            info_color = rgb_to_256color_escape(info_color,background)
+            info_color = rgb_to_256color_escape(info_color, background)
 
         self.formatter = CustomFormatter(info_color=info_color)
         stream_handler = logging.StreamHandler()
@@ -205,11 +215,11 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
         methodName = levelName.lower()
 
     if hasattr(logging, levelName):
-       raise AttributeError('{} already defined in logging module'.format(levelName))
+        raise AttributeError('{} already defined in logging module'.format(levelName))
     if hasattr(logging, methodName):
-       raise AttributeError('{} already defined in logging module'.format(methodName))
+        raise AttributeError('{} already defined in logging module'.format(methodName))
     if hasattr(logging.getLoggerClass(), methodName):
-       raise AttributeError('{} already defined in logger class'.format(methodName))
+        raise AttributeError('{} already defined in logger class'.format(methodName))
 
     # This method was inspired by the answers to Stack Overflow post
     # http://stackoverflow.com/q/2183233/2988730, especially
@@ -217,6 +227,7 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
     def logForLevel(self, message, *args, **kwargs):
         if self.isEnabledFor(levelNum):
             self._log(levelNum, message, args, **kwargs)
+
     def logToRoot(message, *args, **kwargs):
         logging.log(levelNum, message, *args, **kwargs)
 

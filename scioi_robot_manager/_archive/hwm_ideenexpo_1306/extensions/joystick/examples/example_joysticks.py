@@ -1,7 +1,7 @@
 import logging
 import time
 
-from extensions.joystick.joystick_manager import JoystickManager, Joystick
+from extensions.joystick._archive.joystick_manager import JoystickManager, Joystick
 
 logging.basicConfig(
     format='%(asctime)s.%(msecs)03d  %(levelname)-8s  %(message)s',

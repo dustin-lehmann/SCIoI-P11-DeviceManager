@@ -34,18 +34,18 @@ class NatNetClient:
     def __init__(self, server_address, local_address, multicast_address):
         # Change this value to the IP address of the NatNet server.
         # self.serverIPAddress = "127.0.0.1"
-        self.serverIPAddress = "130.149.244.105"
-        # self.serverIPAddress = server_address
+        # self.serverIPAddress = "130.149.244.105"
+        self.serverIPAddress = server_address
 
         # Change this value to the IP address of your local network interface
         # self.localIPAddress = "127.0.0.1"
         # self.localIPAddress = "130.149.244.182"
-        self.localIPAddress = "192.168.0.100"
-        # self.localIPAddress = local_address
+        # self.localIPAddress = "192.168.0.100"
+        self.localIPAddress = local_address
 
         # This should match the multicast address listed in Motive's streaming settings.
-        self.multicastIPAddress = "239.255.42.99"
-        # self.multicastIPAddress = multicast_address
+        # self.multicastIPAddress = "239.255.42.99"
+        self.multicastIPAddress = multicast_address
 
         # NatNet Command channel
         self.commandPort = 1510
@@ -57,7 +57,7 @@ class NatNetClient:
         self.rigidBodyListener = None
 
         # NatNet stream version. This will be updated to the actual version the server is using during initialization.
-        self.__natNetStreamVersion = (3, 0, 0, 0)
+        self.natNetStreamVersion = (3, 0, 0, 0)
 
     # Client/server message ids
     NAT_PING = 0
@@ -119,7 +119,7 @@ class NatNetClient:
             self.rigidBodyListener(id, pos, rot)
 
         # RB Marker Data ( Before version 3.0.  After Version 3.0 Marker data is in description )
-        if (self.__natNetStreamVersion[0] < 3 and self.__natNetStreamVersion[0] != 0):
+        if self.natNetStreamVersion[0] < 3 and self.natNetStreamVersion[0] != 0:
             # Marker count (4 bytes)
             markerCount = int.from_bytes(data[offset:offset + 4], byteorder='little')
             offset += 4
@@ -132,7 +132,7 @@ class NatNetClient:
                 offset += 12
                 trace("\tMarker", i, ":", pos[0], ",", pos[1], ",", pos[2])
 
-            if (self.__natNetStreamVersion[0] >= 2):
+            if (self.natNetStreamVersion[0] >= 2):
                 # Marker ID's
                 for i in markerCountRange:
                     id = int.from_bytes(data[offset:offset + 4], byteorder='little')
@@ -145,14 +145,14 @@ class NatNetClient:
                     offset += 4
                     trace("\tMarker Size", i, ":", size[0])
 
-        if (self.__natNetStreamVersion[0] >= 2):
+        if (self.natNetStreamVersion[0] >= 2):
             markerError, = FloatValue.unpack(data[offset:offset + 4])
             offset += 4
             trace("\tMarker Error:", markerError)
 
         # Version 2.6 and later
-        if (((self.__natNetStreamVersion[0] == 2) and (self.__natNetStreamVersion[1] >= 6)) or
-                self.__natNetStreamVersion[0] > 2 or self.__natNetStreamVersion[0] == 0):
+        if (((self.natNetStreamVersion[0] == 2) and (self.natNetStreamVersion[1] >= 6)) or
+                self.natNetStreamVersion[0] > 2 or self.natNetStreamVersion[0] == 0):
             param, = struct.unpack('h', data[offset:offset + 2])
             trackingValid = (param & 0x01) != 0
             offset += 2
@@ -229,7 +229,7 @@ class NatNetClient:
 
         # Version 2.1 and later
         skeletonCount = 0
-        if ((self.__natNetStreamVersion[0] == 2 and self.__natNetStreamVersion[1] > 0) or self.__natNetStreamVersion[
+        if ((self.natNetStreamVersion[0] == 2 and self.natNetStreamVersion[1] > 0) or self.natNetStreamVersion[
             0] > 2):
             skeletonCount = int.from_bytes(data[offset:offset + 4], byteorder='little')
             offset += 4
@@ -239,7 +239,7 @@ class NatNetClient:
 
         # Labeled markers (Version 2.3 and later)
         labeledMarkerCount = 0
-        if ((self.__natNetStreamVersion[0] == 2 and self.__natNetStreamVersion[1] > 3) or self.__natNetStreamVersion[
+        if ((self.natNetStreamVersion[0] == 2 and self.natNetStreamVersion[1] > 3) or self.natNetStreamVersion[
             0] > 2):
             labeledMarkerCount = int.from_bytes(data[offset:offset + 4], byteorder='little')
             offset += 4
@@ -253,8 +253,8 @@ class NatNetClient:
                 offset += 4
 
                 # Version 2.6 and later
-                if ((self.__natNetStreamVersion[0] == 2 and self.__natNetStreamVersion[1] >= 6) or
-                        self.__natNetStreamVersion[0] > 2 or major == 0):
+                if ((self.natNetStreamVersion[0] == 2 and self.natNetStreamVersion[1] >= 6) or
+                        self.natNetStreamVersion[0] > 2 or major == 0):
                     param, = struct.unpack('h', data[offset:offset + 2])
                     offset += 2
                     occluded = (param & 0x01) != 0
@@ -262,13 +262,13 @@ class NatNetClient:
                     modelSolved = (param & 0x04) != 0
 
                 # Version 3.0 and later
-                if ((self.__natNetStreamVersion[0] >= 3) or major == 0):
+                if ((self.natNetStreamVersion[0] >= 3) or major == 0):
                     residual, = FloatValue.unpack(data[offset:offset + 4])
                     offset += 4
                     trace("Residual:", residual)
 
         # Force Plate data (version 2.9 and later)
-        if ((self.__natNetStreamVersion[0] == 2 and self.__natNetStreamVersion[1] >= 9) or self.__natNetStreamVersion[
+        if ((self.natNetStreamVersion[0] == 2 and self.natNetStreamVersion[1] >= 9) or self.natNetStreamVersion[
             0] > 2):
             forcePlateCount = int.from_bytes(data[offset:offset + 4], byteorder='little')
             offset += 4
@@ -294,7 +294,7 @@ class NatNetClient:
                         trace("\t\t", forcePlateChannelVal)
 
         # Device data (version 2.11 and later)
-        if ((self.__natNetStreamVersion[0] == 2 and self.__natNetStreamVersion[1] >= 11) or self.__natNetStreamVersion[
+        if ((self.natNetStreamVersion[0] == 2 and self.natNetStreamVersion[1] >= 11) or self.natNetStreamVersion[
             0] > 2):
             deviceCount = int.from_bytes(data[offset:offset + 4], byteorder='little')
             offset += 4
@@ -326,7 +326,7 @@ class NatNetClient:
         offset += 4
 
         # Timestamp (increased to double precision in 2.7 and later)
-        if ((self.__natNetStreamVersion[0] == 2 and self.__natNetStreamVersion[1] >= 7) or self.__natNetStreamVersion[
+        if ((self.natNetStreamVersion[0] == 2 and self.natNetStreamVersion[1] >= 7) or self.natNetStreamVersion[
             0] > 2):
             timestamp, = DoubleValue.unpack(data[offset:offset + 8])
             offset += 8
@@ -335,7 +335,7 @@ class NatNetClient:
             offset += 4
 
         # Hires Timestamp (Version 3.0 and later)
-        if ((self.__natNetStreamVersion[0] >= 3) or major == 0):
+        if ((self.natNetStreamVersion[0] >= 3) or major == 0):
             stampCameraExposure = int.from_bytes(data[offset:offset + 8], byteorder='little')
             offset += 8
             stampDataReceived = int.from_bytes(data[offset:offset + 8], byteorder='little')
@@ -378,7 +378,7 @@ class NatNetClient:
         offset = 0
 
         # Version 2.0 or higher
-        if (self.__natNetStreamVersion[0] >= 2):
+        if (self.natNetStreamVersion[0] >= 2):
             name, separator, remainder = bytes(data[offset:]).partition(b'\0')
             offset += len(name) + 1
             trace("\tRigidBody Name:", name.decode('utf-8'))
@@ -393,7 +393,7 @@ class NatNetClient:
         offset += 12
 
         # Version 3.0 and higher, rigid body marker information contained in description
-        if (self.__natNetStreamVersion[0] >= 3 or self.__natNetStreamVersion[0] == 0):
+        if (self.natNetStreamVersion[0] >= 3 or self.natNetStreamVersion[0] == 0):
             markerCount = int.from_bytes(data[offset:offset + 4], byteorder='little')
             offset += 4
             trace("\tRigidBody Marker Count:", markerCount)
@@ -468,7 +468,7 @@ class NatNetClient:
         elif (messageID == self.NAT_PINGRESPONSE):
             offset += 256  # Skip the sending app's Name field
             offset += 4  # Skip the sending app's Version info
-            self.__natNetStreamVersion = struct.unpack('BBBB', data[offset:offset + 4])
+            self.natNetStreamVersion = struct.unpack('BBBB', data[offset:offset + 4])
             offset += 4
         elif (messageID == self.NAT_RESPONSE):
             if (packetSize == 4):

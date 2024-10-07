@@ -2,14 +2,12 @@ import logging
 import threading
 import time
 
-from numpy import sign
-
 from device_manager.device_manager import DeviceManager
 from device_manager.devices.device import Device
 from device_manager.devices.robots.twipr.twipr import TWIPR
-from extensions.joystick.joystick_manager import JoystickManager, Joystick
+from extensions.joystick._archive.joystick_manager import JoystickManager, Joystick
 from extensions.optitrack.optitrack import OptiTrack
-import applications.ideenexpo.settings as settings
+import applications.TWIPR.IdeenExpo24.settings as settings
 
 logger = logging.getLogger('robot manager')
 logger.setLevel('INFO')
@@ -325,7 +323,7 @@ class RobotManager:
     def _newDevice_callback(self, device: Device, *args, **kwargs):
 
         # Check if the device has the correct class and type
-        if not (device.information.device_class == 'robot' and device.information.device_type == 'twipr'):
+        if not (device.information.device_class == 'robot' and device.information.device_type == 'TWIPR'):
             return
 
         robot = TWIPR(device)

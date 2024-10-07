@@ -1,5 +1,4 @@
 import dataclasses
-import logging
 import queue
 import sys
 import threading
@@ -7,10 +6,10 @@ import time
 import socket
 
 import cobs.cobs as cobs
-
+from utils.logging import Logger
 from core.utils.network import getIP
 
-logger = logging.getLogger('tcp')
+logger = Logger('tcp')
 logger.setLevel('INFO')
 
 PACKAGE_TIMEOUT_TIME = 5
@@ -134,8 +133,8 @@ class TCP_Client:
         while not self._exit:
             try:
                 data = self._connection.recv(8092)
-            except Exception as e:
-                logging.warning("Error in TCP connection. Close connection")
+            except Exception:
+                logger.warning("Error in TCP connection. Close connection")
                 self.close()
                 return
 
@@ -270,6 +269,9 @@ class TCP_Host:
 
         self._server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    def init(self):
+        ...
     # ------------------------------------------------------------------------------------------------------------------
     def start(self):
         self._thread = threading.Thread(target=self._threadFunction, daemon=True)

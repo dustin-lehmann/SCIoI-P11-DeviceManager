@@ -1,11 +1,10 @@
 import dataclasses
-import logging
 
 from core.communication.connection import Connection
 from core.communication.protocols.protocol import Protocol, Message
 from core.communication.protocols.tcp.tcp_json_protocol import TCP_JSON_Message, TCP_JSON_Protocol
-
-logger = logging.getLogger('device')
+from utils.logging import Logger
+logger = Logger('device')
 logger.setLevel('INFO')
 
 
@@ -74,6 +73,10 @@ class Device:
             self.connection.registerCallback('disconnected', self._disconnected_callback)
 
     # === METHODS ======================================================================================================
+    def close(self):
+        self.connection.close()
+
+    # ------------------------------------------------------------------------------------------------------------------
     def write(self, parameter, value):
         msg = TCP_JSON_Message()
         msg.type = 'write'
@@ -100,6 +103,7 @@ class Device:
             msg.data = parameter
 
         self.send(message=msg)
+
 
     # ------------------------------------------------------------------------------------------------------------------
     def read(self, parameter):
@@ -185,23 +189,6 @@ class Device:
         self.information.revision = data['revision']
 
         # Set the data
-        # for name, item in data['data'].items():
-        #     if isinstance(item, dict) and all(isinstance(sub_item, dict) for sub_item in item.values()):
-        #         self.data[name] = {}
-        #         for sub_item_name, sub_item in item.items():
-        #             self.data[name][sub_item_name] = DataValue(identifier=sub_item['identifier'],
-        #                                                        description=sub_item['description'],
-        #                                                        limits=sub_item['limits'],
-        #                                                        writable=sub_item['writable'],
-        #                                                        datatype=sub_item['datatype'],
-        #                                                        value=sub_item['value'])
-        #     else:
-        #         self.data[name] = DataValue(identifier=item['identifier'],
-        #                                     description=item['description'],
-        #                                     limits=item['limits'],
-        #                                     writable=item['writable'],
-        #                                     datatype=item['datatype'],
-        #                                     value=item['value'])
 
         # Set the commands
         self.connection.registered = True

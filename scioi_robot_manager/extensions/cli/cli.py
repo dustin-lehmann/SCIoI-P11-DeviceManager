@@ -15,9 +15,14 @@ from utils.logging import Logger
 
 from prompt_toolkit import prompt, HTML
 from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.application import get_app
+from prompt_toolkit.patch_stdout import patch_stdout
+from prompt_toolkit.formatted_text import ANSI
+import curses
 
 logger = Logger('CLI')
 logger.setLevel("INFO")
+os.system("")
 
 
 @dataclasses.dataclass
@@ -29,24 +34,24 @@ class CommandArgument:
     mapped_name: str = None
     description: str = None
     default: object = None
+    optional: bool = False
     is_flag: bool = False
 
 
-# TODO: Add custom function inside command. This is executed first and then its outputs are given to the callback?
-# TODO add a way to parse lists
-#
-
+# ==================================================================================================================
 class Command:
     description: str
     name: str
-    arguments: dict[str, CommandArgument]
+    arguments: dict[str, CommandArgument] = None
     callback: Callback
 
     def __init__(self, name, callback=None, description='', arguments: list[CommandArgument] = None):
         self.name = name
         self.description = description
         self.callback = callback
-        self.arguments = {}
+
+        if not hasattr(self, 'arguments') or self.arguments is None:
+            self.arguments = {}
 
         if arguments is not None:
             for argument in arguments:
@@ -75,7 +80,7 @@ class Command:
 
         # Check if all arguments are there
         for name, argument in self.arguments.items():
-            if argument.default is not None:
+            if argument.optional or argument.default is not None:
                 if argument.name not in keyword_args.keys():
                     keyword_args[argument.name] = argument.default
             elif argument.is_flag:
@@ -187,12 +192,12 @@ class Command:
         if len(self.arguments) > 0:
             help_string += f"\n"
             for argument in self.arguments.values():
-                help_string += f"{string.escapeCode(text_color_rgb=colors.DARK_CYAN)}  --{argument.name}{string.text_reset}"
+                help_string += f"{string.escapeCode(text_color_rgb=colors.DARK_CYAN)}  --{argument.name}{string.text_reset} ({argument.type.__name__})"
                 if argument.short_name is not None:
                     help_string += f" (-{argument.short_name})"
                 if argument.description:
                     help_string += f": {argument.description}"
-                if argument.default is not None:
+                if argument.optional:
                     help_string += f" (Optional, default: {argument.default})"
                 help_string += "\n"
         else:
@@ -201,8 +206,10 @@ class Command:
         return help_string
 
 
+# ======================================================================================================================
 class CommandSet:
     commands: dict[str, Command]
+    description: str = ''
 
     def __init__(self, name):
         self.commands = {}
@@ -277,32 +284,6 @@ class CommandSet:
         return None
 
     # ------------------------------------------------------------------------------------------------------------------
-    # def process_command(self, command, args, params):
-    #     self.commands[command].execute(*args, **params)
-
-    # def parseCommand(self, command_string):
-    #     command, args, params = parse_command(command_string)
-    #     ret = self.handle_command(command, args, params)
-    #     return ret
-    # ------------------------------------------------------------------------------------------------------------------
-    # def handle_command(self, command, args, params):
-    #     if command == 'exit' and len(args) == 0 and len(params) == 0:
-    #         if self.parent_set is not None:
-    #             return self.parent_set
-    #         print("EXIT")
-    #
-    #     elif command in self.commands.keys():
-    #         self.process_command(command, args, params)
-    #
-    #     elif command in self.child_sets.keys():
-    #         if len(args) == 0:
-    #             return self.child_sets[command]
-    #         else:
-    #             self.child_sets[command].handle_command(command=args[0], args=args[1:], params=params)
-    #     else:
-    #         logger.warning(f"Command {command} not found")
-
-    # ------------------------------------------------------------------------------------------------------------------
     def printCommand(self, command, args, params):
         print(f'{self.name.capitalize()} - Command: {command}')
         print(f'Arguments: {args}')
@@ -361,7 +342,8 @@ class CommandSet:
             commands_overview_string = f"{string.escapeCode(colors.MEDIUM_CYAN, bold=True)}Commands: {string.text_reset}"
             if len(self.commands) > 1:
                 for command in self.commands.values():
-                    commands_overview_string += f"{string.escapeCode(colors.MEDIUM_CYAN)}{command.name}{string.text_reset} "
+                    if command.name != 'help':
+                        commands_overview_string += f"{string.escapeCode(colors.MEDIUM_CYAN)}{command.name}{string.text_reset} "
             else:
                 commands_overview_string += "-"
 
@@ -381,16 +363,18 @@ class CommandSet:
     def shortHelp(self):
         helpstring = ''
         helpstring += f"{string.bold_text}Command Set: {string.text_reset}{string.escapeCode(colors.MEDIUM_MAGENTA)}{self.name}{string.text_reset}\n"
-        helpstring += f"{string.bold_text}Description: {string.text_reset} \n"
+        helpstring += f"{string.bold_text}Description: {string.text_reset} {self.description}\n"
         helpstring += f"{string.bold_text}Commands:{string.text_reset}  "
         for subset in self.child_sets.values():
             helpstring += f"{string.escapeCode(colors.MEDIUM_MAGENTA)}{subset.name}{string.text_reset}   "
         for command in self.commands.values():
-            helpstring += f"{string.escapeCode(colors.MEDIUM_CYAN)}{command.name}{string.text_reset}   "
+            if command.name != 'help':
+                helpstring += f"{string.escapeCode(colors.MEDIUM_CYAN)}{command.name}{string.text_reset}   "
         return helpstring
 
     # ------------------------------------------------------------------------------------------------------------------
-    def _parse(self, command_string):
+    @staticmethod
+    def _parse(command_string):
         # Use shlex.split to correctly handle quoted strings
         tokens = shlex.split(command_string)
 
@@ -432,6 +416,7 @@ class CommandSet:
         return command, args, params, remaining_command_string
 
 
+# ======================================================================================================================
 class CLI:
     active_set: CommandSet
 
@@ -446,25 +431,32 @@ class CLI:
         self.active_set = commandSet
         self.running = True
         self.thread = threading.Thread(target=self.listen_for_commands)
+        time.sleep(0.1)
         self.thread.start()
 
-    def clear_terminal(self):
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def clear_terminal():
         # Check the operating system and execute the appropriate command
         if os.name == 'nt':  # For Windows
             os.system('cls')
-        else:  # For MacOS and Linux
+        else:  # For macOS and Linux
             os.system('clear')
 
+    # ------------------------------------------------------------------------------------------------------------------
     def listen_for_commands(self):
         while self.running:
             try:
                 # prompt = f"\033[1;36mCommand ({self.active_set.commandSetPath})\033[0m: "
-                if os.isatty(sys.stdin.fileno()):
+                if os.name != 'nt' and os.isatty(sys.stdin.fileno()):
                     prompt_message = HTML('<ansicyan>Command ({})</ansicyan>: '.format(self.active_set.commandSetPath))
                     user_input = prompt(prompt_message, history=self.history)
                 else:
                     prompt_message = f"\033[1;36mCommand ({self.active_set.commandSetPath})\033[0m: "
-                    user_input = input(prompt_message)
+                    try:
+                        user_input = input(prompt_message)
+                    except EOFError:
+                        ...
                 if user_input == '':
                     continue
                 if user_input == 'clear':
@@ -481,5 +473,64 @@ class CLI:
             except KeyboardInterrupt:
                 self.stop()
 
+    # ------------------------------------------------------------------------------------------------------------------
     def stop(self):
         self.running = False
+
+
+# class CLI:
+#     def __init__(self):
+#         self.active_set = None
+#         self.thread = None
+#         self.running = False
+#         self.stdscr = None
+#
+#     def start(self, commandSet):
+#         self.active_set = commandSet
+#         self.running = True
+#         self.thread = threading.Thread(target=self.run_curses)
+#         self.thread.start()
+#
+#     def run_curses(self):
+#         curses.wrapper(self.curses_main)
+#
+#     def curses_main(self, stdscr):
+#         self.stdscr = stdscr
+#         curses.curs_set(1)
+#         stdscr.clear()
+#
+#         input_win = curses.newwin(1, curses.COLS, curses.LINES - 1, 0)
+#         log_win = curses.newwin(curses.LINES - 1, curses.COLS, 0, 0)
+#
+#         input_win.scrollok(True)
+#         log_win.scrollok(True)
+#
+#         while self.running:
+#             input_win.clear()
+#             input_win.addstr(0, 0, f"Command ({self.active_set.commandSetPath}): ")
+#             input_win.refresh()
+#
+#             user_input = input_win.getstr(0, len(f"Command ({self.active_set.commandSetPath}): ")).decode('utf-8')
+#             if user_input == '':
+#                 continue
+#             if user_input == 'clear':
+#                 log_win.clear()
+#                 log_win.refresh()
+#                 continue
+#             try:
+#                 ret = self.active_set.run(user_input)
+#                 if isinstance(ret, CommandSet):
+#                     self.active_set = ret
+#             except Exception as e:
+#                 self.log(log_win, f"Error while executing command: {str(e)}")
+#
+#             time.sleep(0.1)
+#
+#     def log(self, log_win, message):
+#         log_win.addstr(message + "\n")
+#         log_win.refresh()
+#
+#     def stop(self):
+#         self.running = False
+#         if self.stdscr:
+#             curses.endwin()

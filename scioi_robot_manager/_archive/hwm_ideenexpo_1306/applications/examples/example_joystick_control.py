@@ -1,14 +1,10 @@
-import asyncio
-import json
-import threading
 import time
 
 import numpy as np
-import websockets
 
 from applications.robot_manager import RobotManager
 from device_manager.devices.robots.twipr.twipr import TWIPR
-from extensions.joystick.joystick_manager import Joystick
+from extensions.joystick._archive.joystick_manager import Joystick
 
 
 def streamCallback(stream, device, *args, **kwargs):

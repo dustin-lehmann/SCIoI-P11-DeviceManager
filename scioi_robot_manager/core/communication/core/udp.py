@@ -1,12 +1,11 @@
 import dataclasses
-import logging
 import queue
 import socket
 import threading
 import time
 from cobs import cobs
-
-logger = logging.getLogger('udp')
+from utils.logging import Logger
+logger = Logger('udp')
 logger.setLevel('INFO')
 
 

@@ -4,7 +4,7 @@ from extensions.optitrack.optitrack import OptiTrack
 
 
 def example_optitrack():
-    optitrack = OptiTrack()
+    optitrack = OptiTrack(server_address="127.0.0.1", local_address="127.0.0.1", multicast_address="239.255.42.99")
     optitrack.start()
 
     while True:

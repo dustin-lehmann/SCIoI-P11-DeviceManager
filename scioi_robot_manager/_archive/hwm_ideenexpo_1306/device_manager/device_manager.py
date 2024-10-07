@@ -12,7 +12,7 @@ logger.setLevel('INFO')
 
 known_devices = {
     'robot': {
-        'twipr': TWIPR
+        'TWIPR': TWIPR
     }
 }
 

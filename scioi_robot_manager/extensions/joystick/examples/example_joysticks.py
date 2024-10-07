@@ -1,7 +1,7 @@
 import logging
 import time
 
-from extensions.joystick.joystick_manager import JoystickManager, Joystick
+from extensions.joystick._archive.joystick_manager import JoystickManager, Joystick
 
 logging.basicConfig(
     format='%(asctime)s.%(msecs)03d  %(levelname)-8s  %(message)s',
@@ -32,8 +32,9 @@ def main():
     jm.registerCallback('new_joystick', callback_new_joystick)
 
     while True:
-        #     for uuid, joystick in jm.joysticks.items():
-        #         print(f"Joystick {joystick.uuid}, Axis 0: {joystick.axis[0]}")
+        for uuid, joystick in jm.joysticks.items():
+            ...
+            print(f"Joystick {joystick.id}, Axis 0: {joystick.axis[0]}")
         time.sleep(1)
 
 

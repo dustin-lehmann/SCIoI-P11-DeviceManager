@@ -1,4 +1,3 @@
-import logging
 import time
 
 from core.communication.protocols.tcp.tcp_json_protocol import TCP_JSON_Message
@@ -6,13 +5,13 @@ from core.communication.tcp_server import TCP_Server
 from core.devices.device import Device
 from robots.twipr.twipr import TWIPR
 from core.utils.callbacks import Callback
-
-logger = logging.getLogger('device')
+from utils.logging import Logger
+logger = Logger('device manager')
 logger.setLevel('INFO')
 
 known_devices = {
     'robot': {
-        'twipr': TWIPR
+        'TWIPR': TWIPR
     }
 }
 
@@ -51,7 +50,7 @@ class DeviceManager:
 
     # ------------------------------------------------------------------------------------------------------------------
     def start(self):
-        logger.info(f"Starting Device Manager")
+        logger.info(f"Starting Device Manager on {self.server.address}")
         self.server.start()
 
     # === PRIVATE METHODS ==============================================================================================

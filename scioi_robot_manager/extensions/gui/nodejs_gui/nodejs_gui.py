@@ -76,7 +76,7 @@ class NodeJSGui:
         self.websocket_messages.send(message)
 
     # ------------------------------------------------------------------------------------------------------------------
-    def print(self, message):
+    def print(self, message, *args, **kwargs):
         self.sendMessage(message_type="message", data=message)
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -103,9 +103,7 @@ class NodeJSGui:
     # ------------------------------------------------------------------------------------------------------------------
     def _run_frontend(self):
         os.chdir(frontend_dir)
-        # os.system("npm run dev -- --open")
-        # os.system("npm install")
-        # print(frontend_dir)
-        # subprocess.run("npm run dev -- --open", shell=True, cwd=frontend_dir)
-        self.frontend_process = subprocess.Popen("npm run dev -- --open", shell=True)
-        # self.frontend_process = subprocess.run(["npm", "run", "dev", "--", "--open"], cwd=frontend_dir)
+        self.frontend_process = subprocess.Popen("npm run dev -- --open", shell=True, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                                 stderr=subprocess.PIPE)
+        # self.frontend_process = subprocess.Popen("npm run dev -- --open", shell=True)
+        # output, error = self.frontend_process.communicate()

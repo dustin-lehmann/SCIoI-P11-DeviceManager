@@ -95,6 +95,7 @@ declare module '$env/static/private' {
 	export const PYTHONPATH: string;
 	export const PYTHONUNBUFFERED: string;
 	export const QT_AUTO_SCREEN_SCALE_FACTOR: string;
+	export const SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS: string;
 	export const SESSIONNAME: string;
 	export const SystemDrive: string;
 	export const SystemRoot: string;
@@ -105,7 +106,6 @@ declare module '$env/static/private' {
 	export const USERNAME: string;
 	export const USERPROFILE: string;
 	export const windir: string;
-	export const ZES_ENABLE_SYSMAN: string;
 }
 
 /**
@@ -206,6 +206,7 @@ declare module '$env/dynamic/private' {
 		PYTHONPATH: string;
 		PYTHONUNBUFFERED: string;
 		QT_AUTO_SCREEN_SCALE_FACTOR: string;
+		SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS: string;
 		SESSIONNAME: string;
 		SystemDrive: string;
 		SystemRoot: string;
@@ -216,7 +217,6 @@ declare module '$env/dynamic/private' {
 		USERNAME: string;
 		USERPROFILE: string;
 		windir: string;
-		ZES_ENABLE_SYSMAN: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;
 	}

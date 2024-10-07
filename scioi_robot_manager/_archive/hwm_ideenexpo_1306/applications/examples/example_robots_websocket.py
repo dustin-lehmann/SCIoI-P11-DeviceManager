@@ -1,18 +1,11 @@
-import asyncio
 import json
 import os
 import signal
 import subprocess
-import threading
 import time
 
-import numpy as np
-
 from applications.robot_manager import RobotManager
-from device_manager.devices.robots.twipr.twipr import TWIPR
-from extensions.joystick.joystick_manager import Joystick
 from extensions.websockets.websocket_server import WebsocketClass
-from gui.nodejs_gui.nodejs_gui import NodeJSGui
 
 ws_stream = None
 ws_messages = None
